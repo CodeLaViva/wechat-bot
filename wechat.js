@@ -1,5 +1,6 @@
 import { WechatyBuilder } from 'wechaty';
 import { FileBox } from 'file-box';
+import { QRCode } from 'qrcode';
 import { Configuration, OpenAIApi } from 'openai';
 
 const wechaty = WechatyBuilder.build(); // get a Wechaty instance
@@ -11,12 +12,13 @@ const configuration = new Configuration({
 const openAi = new OpenAIApi(configuration);
 
 
-var regexCondition = RegExp(/draw|画|图/)
+var regexCondition = RegExp(/draw|picture|image|画|图/)
 
 wechaty
-  .on('scan', (qrcode, status) =>
+  .on('scan', async (qrcode, status) => {
     console.log(`Scan QR Code to login: ${status}\nhttps://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`)
-  )
+    console.log(await QRCode.toString(qrcode, { type: "terminal", small: true }))
+  })
   .on('login', (user) => console.log(`User ${user} logged in`))
   .on('message', async (message) => {
     console.log(`Message: ${message}`);
@@ -59,10 +61,9 @@ wechaty
       } catch (error) {
         console.error(error);
         if (error.response.status === 429) {
-          console.error(error.response.data.error);
           message.say('你说话太快了，请休息一下');
         } else {
-          console.error(error.response.data.error);
+          console.error(error);
           message.say('出了点问题，正在维修中');
         }
       }
